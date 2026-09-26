@@ -1,24 +1,24 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 from datetime import datetime
+import os
 
 # Page Configuration
 st.set_page_config(
-    page_title="Girl Guides Selection Portal",
-    page_icon="⚜️",
+    page_title="IMCG F-7/2 Girls Guide Portal",
+    page_icon="logo.png" if os.path.exists("logo.png") else "🏕️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Custom Gen-Z Styling & Light Theme Injection
+# Custom Gen-Z Styling & Light Canvas Theme
 st.markdown("""
 <style>
     /* Force Light Canvas Theme */
     .stApp {
-        background-color: #f4f7f6 !important;
-        color: #2b2d42 !important;
+        background-color: #f8fafc !important;
+        color: #1e293b !important;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     
@@ -28,30 +28,31 @@ st.markdown("""
         border-right: 1px solid #e2e8f0;
     }
 
-    /* Vibrant Gen-Z Banner */
+    /* Vibrant Header Banner */
     .genz-header {
-        background: linear-gradient(135deg, #004b23 0%, #38b000 50%, #70e000 100%);
+        background: linear-gradient(135deg, #4a1525 0%, #7a1c36 50%, #9e2a2b 100%);
         border-radius: 20px;
-        padding: 2.5rem 1.5rem;
+        padding: 2.2rem 1.5rem;
         color: white;
         text-align: center;
-        box-shadow: 0 10px 25px rgba(56, 176, 0, 0.2);
+        box-shadow: 0 10px 25px rgba(122, 28, 54, 0.25);
         margin-bottom: 2rem;
     }
     .genz-header h1 {
-        color: #ffdd00 !important;
+        color: #ffffff !important;
         font-weight: 800;
-        font-size: 2.3rem;
+        font-size: 2.2rem;
+        margin-top: 0.8rem;
         margin-bottom: 0.2rem;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
     }
     
-    /* Elegant Cards */
+    /* Form Cards */
     .form-card {
         background-color: #ffffff;
         border-radius: 16px;
         padding: 1.8rem;
-        border: 1px solid #e9ecef;
+        border: 1px solid #e2e8f0;
         box-shadow: 0 4px 12px rgba(0,0,0,0.03);
         margin-bottom: 1.5rem;
     }
@@ -59,19 +60,19 @@ st.markdown("""
     /* Classy Gradient Divider */
     .classy-divider {
         height: 3px;
-        background: linear-gradient(90deg, #38b000 0%, #ffdd00 50%, #38b000 100%);
+        background: linear-gradient(90deg, #7a1c36 0%, #b07d5b 50%, #7a1c36 100%);
         border-radius: 2px;
         margin: 2rem 0;
     }
 
-    /* Badge Card Output */
+    /* Badge Result Card */
     .badge-result {
-        background: linear-gradient(135deg, #fff9db 0%, #fff3bf 100%);
-        border: 2px solid #fab005;
+        background: linear-gradient(135deg, #fff5f5 0%, #ffe3e3 100%);
+        border: 2px solid #7a1c36;
         border-radius: 20px;
         padding: 2rem;
         text-align: center;
-        box-shadow: 0 8px 20px rgba(250, 176, 5, 0.15);
+        box-shadow: 0 8px 20px rgba(122, 28, 54, 0.15);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -79,9 +80,13 @@ st.markdown("""
 # Admin Credentials
 ADMIN_PASS = "imcg_f72_admin"
 
-# Sidebar Portal Switcher
-st.sidebar.image("https://img.icons8.com/color/96/girl-scout.png", width=80)
-st.sidebar.title("⚜️ Girl Guides Portal")
+# Sidebar Branding
+if os.path.exists("logo.png"):
+    st.sidebar.image("logo.png", width=140)
+else:
+    st.sidebar.title("🛡️ Girls Guide")
+
+st.sidebar.title("IMCG F-7/2 Portal")
 portal_selection = st.sidebar.radio("Navigate View:", ["🎓 Student Application", "📊 Admin Analytics Dashboard"])
 
 # ==========================================
@@ -89,11 +94,15 @@ portal_selection = st.sidebar.radio("Navigate View:", ["🎓 Student Application
 # ==========================================
 if portal_selection == "🎓 Student Application":
     
-    # Hero Banner with Cartoon Girl Guide Visual
+    # Hero Banner with Logo Integration
+    col_logo1, col_logo2, col_logo3 = st.columns([1, 2, 1])
+    with col_logo2:
+        if os.path.exists("logo.png"):
+            st.image("logo.png", width=170)
+
     st.markdown("""
     <div class="genz-header">
-        <div style="font-size: 3.5rem; margin-bottom: -10px;">⚜️ 👧🏻🧕🏽👧🏼 ⚜️</div>
-        <h1>IMCG F-7/2 Girl Guides Assessment</h1>
+        <h1>IMCG F-7/2 Girls Guide Assessment</h1>
         <p style="font-size: 1.1rem; opacity: 0.95;">Discover Your Leadership Persona • Join the Sisterhood</p>
     </div>
     """, unsafe_allow_html=True)
@@ -138,94 +147,94 @@ if portal_selection == "🎓 Student Application":
 
         scenarios = [
             ("Q1. Heavy rain interrupts setting up camp. What is your immediate reaction?", [
-                ("Reorganize tasks and give clear steps to keep shelter setup moving forward.", "Leader"),
+                ("Reorganize tasks and give clear steps to keep shelter setup moving forward.", "Expedition Leader"),
                 ("Gather everyone, ensure no one is cold, and keep team spirit high.", "Unity Builder"),
-                ("Quickly organize tarps and move equipment to dry spots.", "Logistics"),
-                ("Find natural trees/terrain to construct an improvised storm shield.", "Innovator")
+                ("Quickly organize tarps and move equipment to dry spots.", "Logistics Captain"),
+                ("Find natural trees/terrain to construct an improvised storm shield.", "Resource Innovator")
             ]),
             ("Q2. A hesitant new student joins your unit. How do you help her fit in?", [
                 ("Pair up with her immediately so she feels welcome.", "Unity Builder"),
-                ("Explain the day's routine so she knows exactly what to expect.", "Logistics"),
-                ("Assign her an active role so she feels included right away.", "Leader"),
-                ("Start a friendly conversation about shared interests.", "Innovator")
+                ("Explain the day's routine so she knows exactly what to expect.", "Logistics Captain"),
+                ("Assign her an active role so she feels included right away.", "Expedition Leader"),
+                ("Start a friendly conversation about shared interests.", "Resource Innovator")
             ]),
             ("Q3. Your community project is running behind schedule. What do you do?", [
-                ("Adjust the task list and redirect team members to bottleneck areas.", "Logistics"),
+                ("Adjust the task list and redirect team members to bottleneck areas.", "Logistics Captain"),
                 ("Give an encouraging pep talk to boost the team's speed.", "Unity Builder"),
-                ("Set micro-goals and push the pace by leading from the front.", "Leader"),
-                ("Find a simpler, faster way to complete the remaining tasks.", "Innovator")
+                ("Set micro-goals and push the pace by leading from the front.", "Expedition Leader"),
+                ("Find a simpler, faster way to complete the remaining tasks.", "Resource Innovator")
             ]),
             ("Q4. Two members disagree on who leads a presentation. How do you handle it?", [
                 ("Listen to both and guide them to a fair middle ground.", "Unity Builder"),
-                ("Divide the presentation cleanly into two equal parts.", "Logistics"),
-                ("Step in, make a clear decision, and assign specific topics.", "Leader"),
-                ("Suggest an interactive dual-presenter format.", "Innovator")
+                ("Divide the presentation cleanly into two equal parts.", "Logistics Captain"),
+                ("Step in, make a clear decision, and assign specific topics.", "Expedition Leader"),
+                ("Suggest an interactive dual-presenter format.", "Resource Innovator")
             ]),
             ("Q5. On a trail walk, your map goes missing. How do you respond?", [
-                ("Remain calm and guide the group using key landmarks.", "Leader"),
-                ("Use natural signs like sun orientation and landscape features.", "Innovator"),
-                ("Halt the team, inventory supplies, and plan a safe route back.", "Logistics"),
+                ("Remain calm and guide the group using key landmarks.", "Expedition Leader"),
+                ("Use natural signs like sun orientation and landscape features.", "Resource Innovator"),
+                ("Halt the team, inventory supplies, and plan a safe route back.", "Logistics Captain"),
                 ("Keep the group relaxed with upbeat conversation while assessing options.", "Unity Builder")
             ]),
             ("Q6. What role appeals to you most in an environmental campaign?", [
-                ("Delivering awareness speeches and engaging the audience.", "Leader"),
-                ("Managing schedule schedules, equipment, and venue setup.", "Logistics"),
+                ("Delivering awareness speeches and engaging the audience.", "Expedition Leader"),
+                ("Managing schedule schedules, equipment, and venue setup.", "Logistics Captain"),
                 ("Connecting with community families to encourage participation.", "Unity Builder"),
-                ("Designing posters, banners, and recycled display items.", "Innovator")
+                ("Designing posters, banners, and recycled display items.", "Resource Innovator")
             ]),
             ("Q7. During a campus safety drill, which task do you volunteer for?", [
-                ("Handling safety gear, knot lashings, or emergency kits.", "Innovator"),
-                ("Narrating safety steps clearly to the audience.", "Leader"),
-                ("Keeping attendance lists and managing group order.", "Logistics"),
+                ("Handling safety gear, knot lashings, or emergency kits.", "Resource Innovator"),
+                ("Narrating safety steps clearly to the audience.", "Expedition Leader"),
+                ("Keeping attendance lists and managing group order.", "Logistics Captain"),
                 ("Ensuring everyone stays calm and moves safely.", "Unity Builder")
             ]),
             ("Q8. Unplanned cold weather sets in during an outdoor activity. You:", [
                 ("Arrange hot drinks and ensure everyone stays warm.", "Unity Builder"),
-                ("Build a windbreak barrier using available gear.", "Innovator"),
-                ("Keep morale high through group songs and team games.", "Leader"),
-                ("Adjust the timetable to finish key tasks early.", "Logistics")
+                ("Build a windbreak barrier using available gear.", "Resource Innovator"),
+                ("Keep morale high through group songs and team games.", "Expedition Leader"),
+                ("Adjust the timetable to finish key tasks early.", "Logistics Captain")
             ]),
             ("Q9. Managing a limited event budget, you prefer to:", [
-                ("Keep precise itemized records of every expense.", "Logistics"),
-                ("Repurpose available materials into creative setups.", "Innovator"),
+                ("Keep precise itemized records of every expense.", "Logistics Captain"),
+                ("Repurpose available materials into creative setups.", "Resource Innovator"),
                 ("Reach out to local sponsors for support.", "Unity Builder"),
-                ("Coordinate team members to source materials efficiently.", "Leader")
+                ("Coordinate team members to source materials efficiently.", "Expedition Leader")
             ]),
             ("Q10. Constructing a rope bridge across a small stream, you prefer to:", [
-                ("Inspect structural lashings and knot security.", "Innovator"),
-                ("Direct team positions for safe lifting and pulling.", "Leader"),
-                ("Simplify the structure using existing bridge elements.", "Innovator"),
-                ("Ensure safety guidelines are followed step-by-step.", "Logistics")
+                ("Inspect structural lashings and knot security.", "Resource Innovator"),
+                ("Direct team positions for safe lifting and pulling.", "Expedition Leader"),
+                ("Simplify the structure using existing bridge elements.", "Resource Innovator"),
+                ("Ensure safety guidelines are followed step-by-step.", "Logistics Captain")
             ]),
             ("Q11. Representing your unit at college assembly, you:", [
-                ("Deliver an inspiring speech on team achievements.", "Leader"),
-                ("Present a detailed summary report of activities.", "Logistics"),
+                ("Deliver an inspiring speech on team achievements.", "Expedition Leader"),
+                ("Present a detailed summary report of activities.", "Logistics Captain"),
                 ("Highlight how teamwork strengthened student bonds.", "Unity Builder"),
-                ("Share practical skills learned during field training.", "Innovator")
+                ("Share practical skills learned during field training.", "Resource Innovator")
             ]),
             ("Q12. During an unexpected first-aid drill, you:", [
-                ("Step up and organize the response systematically.", "Leader"),
-                ("Apply practical bandage and first-aid steps accurately.", "Innovator"),
-                ("Delegate supply fetching and communication roles.", "Logistics"),
+                ("Step up and organize the response systematically.", "Expedition Leader"),
+                ("Apply practical bandage and first-aid steps accurately.", "Resource Innovator"),
+                ("Delegate supply fetching and communication roles.", "Logistics Captain"),
                 ("Comfort the simulated patient and maintain calm.", "Unity Builder")
             ]),
             ("Q13. In a campus tree plantation drive, you choose to:", [
-                ("Lead community outreach and planting teams.", "Leader"),
-                ("Design creative signs and recycled pot planters.", "Innovator"),
-                ("Track sapling distribution and inventory.", "Logistics"),
+                ("Lead community outreach and planting teams.", "Expedition Leader"),
+                ("Design creative signs and recycled pot planters.", "Resource Innovator"),
+                ("Track sapling distribution and inventory.", "Logistics Captain"),
                 ("Guide junior students through planting steps.", "Unity Builder")
             ]),
             ("Q14. What compliment best reflects your work style?", [
                 ("'You kept the team united and supported.'", "Unity Builder"),
-                ("'Your quick thinking solved an unexpected problem.'", "Innovator"),
-                ("'Your leadership provided clear direction.'", "Leader"),
-                ("'Your organization made everything run smoothly.'", "Logistics")
+                ("'Your quick thinking solved an unexpected problem.'", "Resource Innovator"),
+                ("'Your leadership provided clear direction.'", "Expedition Leader"),
+                ("'Your organization made everything run smoothly.'", "Logistics Captain")
             ]),
             ("Q15. Which Girl Guide principle resonates most with you?", [
-                ("Leading by example with courage and discipline.", "Leader"),
+                ("Leading by example with courage and discipline.", "Expedition Leader"),
                 ("Being a supportive sister to every guide.", "Unity Builder"),
-                ("Being resourceful and inventive at all times.", "Innovator"),
-                ("Maintaining order and duty with responsibility.", "Logistics")
+                ("Being resourceful and inventive at all times.", "Resource Innovator"),
+                ("Maintaining order and duty with responsibility.", "Logistics Captain")
             ])
         ]
 
@@ -240,14 +249,14 @@ if portal_selection == "🎓 Student Application":
 
         st.markdown('</div>', unsafe_allow_html=True)
 
-        submit_btn = st.form_submit_button("⚜️ Complete Application & Generate Badge")
+        submit_btn = st.form_submit_button(" Complete Application & Generate Badge")
 
     if submit_btn:
         if not full_name or not roll_no or not student_photo or not college_id or not consent:
             st.error("⚠️ Please fill in all required fields (*) and upload student photo & college ID!")
         else:
             # Score Calculation
-            scores = {"Leader": 0, "Unity Builder": 0, "Logistics": 0, "Innovator": 0}
+            scores = {"Expedition Leader": 0, "Unity Builder": 0, "Logistics Captain": 0, "Resource Innovator": 0}
             for a in answers:
                 scores[a] = scores.get(a, 0) + 1
             
@@ -256,10 +265,9 @@ if portal_selection == "🎓 Student Application":
             st.balloons()
             st.markdown(f"""
             <div class="badge-result">
-                <span style="font-size: 3rem;">🏅</span>
-                <h2 style="color: #004b23; margin:0;">Congratulations, {full_name}!</h2>
+                <h2 style="color: #7a1c36; margin:0;">Congratulations, {full_name}!</h2>
                 <p style="color: #555; margin-bottom: 1rem;">Your Official Girl Guide Persona Badge is:</p>
-                <h1 style="color: #d97706; font-size: 2.8rem; margin:0;">{top_persona}</h1>
+                <h1 style="color: #9e2a2b; font-size: 2.8rem; margin:0;">{top_persona}</h1>
                 <div style="background:white; padding:1rem; border-radius:12px; margin-top:1.5rem; text-align:left;">
                     <p style="margin:4px 0;"><b>Roll No:</b> {roll_no}</p>
                     <p style="margin:4px 0;"><b>Class:</b> {class_sec}</p>
@@ -280,17 +288,17 @@ else:
         st.success("Authenticated as IMCG F-7/2 College Administrator")
         st.markdown('<div class="classy-divider"></div>', unsafe_allow_html=True)
 
-        # Mock Registered Dataset for Live Analytical View
+        # Mock Registered Dataset
         mock_data = {
             "Roll No": ["101", "102", "103", "104", "105", "106", "107", "108", "109", "110"],
             "Student Name": ["Ayesha Khan", "Zainab Ahmed", "Fatima Ali", "Anum Kaleem", "Maryam Tariq", "Sana Ahmed", "Hira Noor", "Zara Sheikh", "Laiba Malik", "Eman Khalid"],
             "Class": ["2nd Yr Bio", "1st Yr Pre-Med", "2nd Yr Cs", "2nd Yr Bio", "1st Yr Arts", "2nd Yr Bio", "1st Yr Pre-Med", "2nd Yr Cs", "1st Yr Pre-Med", "2nd Yr Bio"],
-            "Assigned Persona": ["Leader", "Unity Builder", "Logistics", "Leader", "Innovator", "Unity Builder", "Leader", "Logistics", "Unity Builder", "Innovator"],
+            "Assigned Persona": ["Expedition Leader", "Unity Builder", "Logistics Captain", "Expedition Leader", "Resource Innovator", "Unity Builder", "Expedition Leader", "Logistics Captain", "Unity Builder", "Resource Innovator"],
             "ID Verified": ["Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes"]
         }
         df = pd.DataFrame(mock_data)
 
-        # Top Metric Cards
+        # Metrics
         col_m1, col_m2, col_m3, col_m4 = st.columns(4)
         col_m1.metric("Total Applicants", len(df), delta="+10 Today")
         col_m2.metric("Target Quota", "100 Students", delta="10% Completed")
@@ -299,7 +307,7 @@ else:
 
         st.markdown("---")
 
-        # Visual Graphs (Pie Chart & Bar Chart)
+        # Graphs
         col_chart1, col_chart2 = st.columns(2)
 
         with col_chart1:
@@ -312,7 +320,7 @@ else:
                 values="Count", 
                 names="Persona", 
                 hole=0.4,
-                color_discrete_sequence=["#38b000", "#ffdd00", "#0077b6", "#e76f51"]
+                color_discrete_sequence=["#7a1c36", "#b07d5b", "#3d5a80", "#2a9d8f"]
             )
             fig_pie.update_traces(textposition='inside', textinfo='percent+label')
             st.plotly_chart(fig_pie, use_container_width=True)
@@ -327,13 +335,13 @@ else:
                 x="Class", 
                 y="Applicants", 
                 color="Class",
-                color_discrete_sequence=px.colors.qualitative.Set2
+                color_discrete_sequence=px.colors.qualitative.Pastel
             )
             st.plotly_chart(fig_bar, use_container_width=True)
 
         st.markdown('<div class="classy-divider"></div>', unsafe_allow_html=True)
 
-        # Applicant Records Table
+        # Records Table
         st.subheader("📑 Registered Student Applications")
         st.dataframe(df, use_container_width=True)
 
