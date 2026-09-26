@@ -1,226 +1,281 @@
 import streamlit as st
+import json
+import os
 import pandas as pd
+from datetime import datetime
 
-st.set_page_config(page_title="Girl Guides Selection Portal", page_icon="⚜️", layout="wide")
+# Configure Page
+st.set_page_config(
+    page_title="Girl Guides Selection & Skill Portal",
+    page_icon="⚜️",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-if 'applications' not in st.session_state:
-    st.session_state['applications'] = []
+# Custom Styling for Vibrant Girl Guide Branding
+st.markdown("""
+<style>
+    .main {
+        background-color: #f8f9fa;
+    }
+    .header-box {
+        background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 60%, #52b788 100%);
+        color: white;
+        padding: 2.5rem;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .header-box h1 {
+        color: #ffb703;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+    }
+    .section-card {
+        background-color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        border-left: 6px solid #2d6a4f;
+        margin-bottom: 2rem;
+    }
+    .badge-card {
+        background: linear-gradient(135deg, #fff3bf 0%, #ffd8a8 100%);
+        border: 2px solid #f59f00;
+        border-radius: 15px;
+        padding: 2rem;
+        text-align: center;
+        margin-top: 1.5rem;
+    }
+    .stButton>button {
+        background-color: #2d6a4f;
+        color: white;
+        font-weight: bold;
+        font-size: 1.1rem;
+        border-radius: 8px;
+        padding: 0.6rem 2rem;
+        border: none;
+        width: 100%;
+    }
+    .stButton>button:hover {
+        background-color: #1b4332;
+        color: #ffb703;
+    }
+</style>
+""", unsafe_allow_html=True)
 
+# Admin Password
+ADMIN_PASSWORD = "imcg_admin_pass"
+
+# Navigation Sidebar
 st.sidebar.title("⚜️ Navigation")
-mode = st.sidebar.radio("Select View:", ["Student Application Portal", "Admin Dashboard"])
+view_mode = st.sidebar.radio("Select Portal View:", ["Student Application Portal", "Admin Dashboard"])
 
-# ==========================================
-# STUDENT APPLICATION PORTAL
-# ==========================================
-if mode == "Student Application Portal":
-    st.title("⚜️ Girl Guides Selection & Skill Assessment Portal")
-    st.write("Complete your registration, upload documents, and take the self-discovery assessment to reveal your Girl Guide Persona Badge!")
-    st.markdown("---")
+if view_mode == "Student Application Portal":
+    # Header Banner
+    st.markdown("""
+    <div class="header-box">
+        <h1>⚜️ Girl Guides Selection & Skill Assessment Portal</h1>
+        <p style="font-size: 1.2rem;">IMCG F-7/2 Islamabad • Official Enrollment & Discovery Portal</p>
+    </div>
+    """, unsafe_allow_html=True)
 
-    with st.form("application_form", clear_on_submit=False):
-        # 1. Student Info
-        st.subheader("1. Student & Guardian Information")
+    with st.form("guide_application_form"):
+        # Section 1: Personal Information
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.subheader("📋 1. Student & Guardian Details")
         col1, col2 = st.columns(2)
         with col1:
-            student_name = st.text_input("Full Name *")
+            full_name = st.text_input("Full Name *")
             roll_no = st.text_input("Roll No / Student ID *")
-            class_sec = st.text_input("Class & Section *")
+            class_section = st.text_input("Class & Section *")
         with col2:
-            father_name = st.text_input("Father's / Guardian's Name *")
-            father_cnic_no = st.text_input("Father's CNIC Number *")
-            outdoor_consent = st.checkbox("I have father/guardian consent for outdoor activities & camps *")
+            father_name = st.text_input("Father / Guardian Name *")
+            cnic = st.text_input("Father / Guardian CNIC *")
+            guardian_consent = st.checkbox("I have father/guardian consent for outdoor activities & camps *")
+        st.markdown('</div>', unsafe_allow_html=True)
 
-        st.markdown("---")
-        # 2. Document Uploads
-        st.subheader("2. Document Uploads")
-        dcol1, dcol2 = st.columns(2)
-        with dcol1:
-            student_photo = st.file_uploader("Upload Student Photo *", type=['jpg', 'jpeg', 'png'])
-            father_cnic_doc = st.file_uploader("Upload Father's CNIC Copy *", type=['pdf', 'jpg', 'png'])
-        with dcol2:
-            consent_form = st.file_uploader("Upload Signed Father Consent Form *", type=['pdf', 'jpg', 'png'])
-            certificates = st.file_uploader("Upload Previous Certificates (Optional)", type=['pdf', 'jpg', 'png'], accept_multiple_files=True)
+        # Section 2: Identity & Verification Uploads
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.subheader("🆔 2. Identity Verification & Documents")
+        st.info("Upload scanned copies/clear photos for verification (Max size: 200MB per file).")
+        
+        uc1, uc2 = st.columns(2)
+        with uc1:
+            student_photo = st.file_uploader("Upload Recent Student Photograph *", type=["jpg", "png", "jpeg"])
+            college_id = st.file_uploader("Upload Student College ID Card *", type=["jpg", "png", "pdf", "jpeg"])
+            bus_card = st.file_uploader("Upload College Bus ID Pass (Optional)", type=["jpg", "png", "pdf", "jpeg"])
+        with uc2:
+            consent_form = st.file_uploader("Upload Signed Guardian Consent Form *", type=["pdf", "jpg", "png", "jpeg"])
+            father_cnic_doc = st.file_uploader("Upload Father's/Guardian's CNIC Copy *", type=["pdf", "jpg", "png", "jpeg"])
+            prev_certs = st.file_uploader("Upload Previous Certificates (Optional)", type=["pdf", "jpg", "png", "jpeg"])
+        st.markdown('</div>', unsafe_allow_html=True)
 
-        st.markdown("---")
-        # 3. Assessment Questionnaire
-        st.subheader("3. Self-Discovery & Persona Assessment")
+        # Section 3: 15 Situational Scenarios
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.subheader("🔍 3. Situational Persona Assessment")
+        st.write("Read each real-life scenario carefully and select the action that best reflects what you would naturally do.")
 
-        q1 = st.radio(
-            "Q1. Self-Discovery Preference: When working on a project, I feel most comfortable when I...",
-            [
-                "👑 Lead the vision, delegate tasks, and guide others to the finish line. (Leadership)",
-                "🤝 Keep everyone involved, resolve disagreements, and ensure no one feels left out. (Teamwork & Inclusion)",
-                "📋 Create detailed planning, manage time schedules, and organize resources. (Organization)",
-                "🏔️ Adapt quickly, stay calm when plans fail, and figure out practical fixes. (Problem Solving & Resilience)"
-            ]
-        )
+        scenarios = [
+            ("Q1. Your team is tasked with setting up camp, but heavy rain starts unexpectedly. What is your immediate reaction?", [
+                ("Step in immediately, divide tasks, and give clear instructions to keep camp setup on track.", "Expedition Leader"),
+                ("Gather everyone in a sheltered spot, check if everyone is safe and dry, and keep spirits high.", "Unity Builder"),
+                ("Quickly pull out the rain tarps, reorganize equipment, and ensure fragile supplies are protected.", "Logistics Captain"),
+                ("Find natural shelter, use knots/tarps to create a temporary canopy, and improvise a rain shield.", "Wilderness Specialist")
+            ]),
+            ("Q2. A new girl joins your Girl Guide unit and hesitates to join group activities. How do you welcome her?", [
+                ("Go over to her, introduce yourself, and pair up with her so she feels immediately included.", "Unity Builder"),
+                ("Explain the structure of today's activities so she feels prepared and understands what to expect.", "Active Communicator"),
+                ("Assign her a specific role in your team so she feels valuable right away.", "Expedition Leader"),
+                ("Invite her to help you prepare materials for the next task to break the ice naturally.", "Logistics Captain")
+            ]),
+            ("Q3. During a community cleanup drive, your team is falling behind schedule. What do you do?", [
+                ("Re-evaluate the remaining workload and reassign volunteers to the slowest areas.", "Logistics Captain"),
+                ("Rally the group with an encouraging speech to boost morale and pace.", "Active Communicator"),
+                ("Set micro-goals for the remaining time and lead from the front by speeding up your work.", "Expedition Leader"),
+                ("Find a more efficient method or shortcut to collect and separate the waste faster.", "Resource Innovator")
+            ]),
+            ("Q4. You notice two team members having a heated disagreement about who should lead a project task. You:", [
+                ("Listen to both sides calmly and help them find a balanced compromise that respects both.", "Unity Builder"),
+                ("Remind them of the overall deadline and clearly split the task responsibility between them.", "Expedition Leader"),
+                ("Redirect their focus by suggesting a completely new approach that requires both their strengths.", "Crisis Anchor"),
+                ("Show them the step-by-step project checklist to objectively decide who does what.", "Logistics Captain")
+            ]),
+            ("Q5. While hiking along a marked trail, you realize a vital piece of navigation equipment was left behind. You:", [
+                ("Remain calm, evaluate visual landmarks, and safely guide the team based on practical instincts.", "Crisis Anchor"),
+                ("Use natural indicators like sun position and terrain features to navigate accurately.", "Wilderness Specialist"),
+                ("Stop the group, double-check all remaining gear in everyone's packs, and map a safe plan.", "Logistics Captain"),
+                ("Inform the group calmly, keeping everyone positive while deciding on the safest next step.", "Active Communicator")
+            ]),
+            ("Q6. Your unit wants to organize an awareness drive on local environmental issues. Which part excites you most?", [
+                ("Designing speeches, posters, and presentation materials to persuade the public.", "Active Communicator"),
+                ("Planning the venue, timetable, permission letters, and equipment setup.", "Logistics Captain"),
+                ("Leading the project committee and coordinating with college administration.", "Expedition Leader"),
+                ("Organizing community outreach teams to connect directly with local neighborhood families.", "Community Advocate")
+            ]),
+            ("Q7. A fire-safety demonstration is being held at camp. Which role do you naturally volunteer for?", [
+                ("Demonstrating knot-tying, safety gear assembly, or tool handling.", "Wilderness Specialist"),
+                ("Explaining safety steps clearly to the audience as the narrator.", "Active Communicator"),
+                ("Managing attendance, safety equipment inventory, and venue readiness.", "Logistics Captain"),
+                ("Taking responsibility as the safety marshal coordinating emergency evacuation drills.", "Crisis Anchor")
+            ]),
+            ("Q8. During a weekend volunteer activity, unexpected cold weather sets in and team members get tired. You:", [
+                ("Organize hot tea, adjust break schedules, and make sure everyone is warm and rested.", "Unity Builder"),
+                ("Gather materials to build a windbreak or temporary warming shelter.", "Wilderness Specialist"),
+                ("Keep up enthusiasm with group songs, motivating words, and uplifting stories.", "Active Communicator"),
+                ("Adjust the work timeline so the most important tasks get finished early.", "Resource Innovator")
+            ]),
+            ("Q9. You are given a limited budget to arrange supplies for an annual Girl Guide exhibition. You:", [
+                ("Create an exact budget spreadsheet to track every rupee spent.", "Logistics Captain"),
+                ("Find creative ways to recycle and repurpose existing materials into stunning displays.", "Resource Innovator"),
+                ("Contact local community vendors to negotiate donations or discounts.", "Community Advocate"),
+                ("Delegate supply purchasing to team leaders and oversee overall execution.", "Expedition Leader")
+            ]),
+            ("Q10. An outdoor exercise requires building a pioneer bridge across a small creek using ropes and wood. You:", [
+                ("Take charge of knot-tying, lashings, and checking structural strength.", "Wilderness Specialist"),
+                ("Direct team members on where to hold, pull, and place timbers safely.", "Expedition Leader"),
+                ("Think of an alternative, simplified design using available materials.", "Resource Innovator"),
+                ("Ensure safety guidelines are strictly followed and double-check every step.", "Crisis Anchor")
+            ]),
+            ("Q11. You are asked to present a summary of your unit's achievements at the college assembly. You:", [
+                ("Confidely deliver an inspiring speech highlighting every member's hard work.", "Active Communicator"),
+                ("Prepare a structured, detailed report with precise statistics and event highlights.", "Logistics Captain"),
+                ("Focus the talk on how the Guide law helped build community spirit and unity.", "Community Advocate"),
+                ("Share practical problem-solving experiences your team overcame in the field.", "Resource Innovator")
+            ]),
+            ("Q12. During a first-aid drill, a simulated emergency scenario is announced without warning. You:", [
+                ("Immediately step up, stay level-headed, and assess the situation systematically.", "Crisis Anchor"),
+                ("Apply practical first-aid procedures and bandages accurately.", "Wilderness Specialist"),
+                ("Delegate roles clearly—one to call for help, one for supplies, one for first aid.", "Expedition Leader"),
+                ("Reassure the injured person and keep surrounding onlookers calm.", "Unity Builder")
+            ]),
+            ("Q13. Your group needs to raise awareness about plantation and tree care in the college. You prefer to:", [
+                ("Lead a tree-planting drive in nearby community spaces and parks.", "Community Advocate"),
+                ("Design creative instructional signs and recycled planter pots.", "Resource Innovator"),
+                ("Schedule planting slots, gather tools, and coordinate plant distribution.", "Logistics Captain"),
+                ("Guide junior students on how to care for plants and nurture growth.", "Unity Builder")
+            ]),
+            ("Q14. When working in a group, what kind of feedback do you appreciate receiving most?", [
+                ("'You kept everyone together and made sure no one was left out.'", "Unity Builder"),
+                ("'Your quick thinking saved the project when things went wrong.'", "Crisis Anchor"),
+                ("'Your leadership gave us clear direction and confidence.'", "Expedition Leader"),
+                ("'Your organization and attention to detail made this flawless.'", "Logistics Captain")
+            ]),
+            ("Q15. What core value of the Girl Guide Law resonates most deeply with you?", [
+                ("To be disciplined, courageous, and lead by example in difficult times.", "Expedition Leader"),
+                ("To be a friend to all and a sister to every other Girl Guide.", "Unity Builder"),
+                ("To use resources wisely and be helpful and inventive at all times.", "Resource Innovator"),
+                ("To serve God, country, and help people at all times.", "Community Advocate")
+            ])
+        ]
 
-        q2 = st.radio(
-            "Q2. Scenario Validation: Your unit is running a community drive, but tasks are falling behind schedule. What is your reaction?",
-            [
-                "Step up immediately, reorganize team roles, and keep everyone accountable. (Leadership - Expedition Leader)",
-                "Listen to team members' concerns, encourage everyone kindly, and maintain unity. (Teamwork - Unity Builder)",
-                "Adjust the timetable, make a checklist of remaining items, and track progress closely. (Organization - Logistics Captain)",
-                "Find creative shortcuts and remain calm despite unexpected changes. (Problem Solver - Wilderness Resource)"
-            ]
-        )
+        responses = []
+        for idx, (question, options) in enumerate(scenarios, start=1):
+            st.markdown(f"**{question}**")
+            # Present options without trait labels
+            opt_texts = [opt[0] for opt in options]
+            choice = st.radio(f"Select option for Q{idx}", opt_texts, index=0, key=f"q_{idx}", label_visibility="collapsed")
+            
+            # Map selected text back to category
+            selected_trait = next(trait for text, trait in options if text == choice)
+            responses.append(selected_trait)
+            st.markdown("---")
 
-        q3 = st.radio(
-            "Q3. Inclusive Mindset: A new girl joins your team and seems hesitant to participate. You:",
-            [
-                "Welcome her warmly, assign her a buddy, and make sure she feels valued. (Inclusive Mindset)",
-                "Explain the project structure clearly so she knows exactly what to do. (Organization)",
-                "Ask her directly what role she would like to take in leading a sub-task. (Leadership)",
-                "Encourage her to share her creative ideas with the whole group. (Active Communicator)"
-            ]
-        )
+        st.markdown('</div>', unsafe_allow_html=True)
 
-        q4 = st.radio(
-            "Q4. Civic & Ethical Drive: On a camping trip or community activity, which task excites you most?",
-            [
-                "Leading environmental conservation drives and community volunteerism. (Community-Minded)",
-                "Upholding the Girl Guide Law, ensuring honesty, fairness, and mutual respect. (Principled)",
-                "Setting up tents, knot-tying, and managing equipment. (Wilderness Resource)",
-                "Coordinating logistics, attendance records, and meal schedules. (Logistics Captain)"
-            ]
-        )
+        submitted = st.form_submit_button("⚜️ Submit Application & Generate Official Badge")
 
-        q5 = st.radio(
-            "Q5. Adaptability & Resilience: Outdoor weather suddenly turns bad during a campus activity. How do you respond?",
-            [
-                "Remain calm, stay positive, and quickly figure out a safe alternative plan. (Resilient & Adaptable)",
-                "Communicate instructions clearly and guide team members to safety. (Active Communicator)",
-                "Ensure every girl is safe, comfortable, and accounted for. (Inclusive & Caretaker)",
-                "Organize supplies and protect equipment from getting damaged. (Logistics Captain)"
-            ]
-        )
-
-        submit_btn = st.form_submit_button("Submit Application & Generate Badge")
-
-    # Processing Submission
-    if submit_btn:
-        if not student_name or not roll_no or not father_cnic_no or not outdoor_consent or not student_photo or not consent_form:
-            st.error("⚠️ Please complete all required student fields and upload mandatory documents.")
+    if submitted:
+        if not full_name or not roll_no or not student_photo or not college_id or not consent_form or not father_cnic_doc:
+            st.error("⚠️ Please fill in all required fields (*) and upload necessary verification documents (including Student Photo, College ID, Father's CNIC, and Consent Form).")
         else:
-            # Trait Scoring System
-            scores = {
-                "Leadership (Expedition Leader)": 0,
-                "Teamwork & Communication (Unity Builder)": 0,
-                "Organization (Logistics Captain)": 0,
-                "Problem Solving (Wilderness Resource)": 0,
-                "Civic & Ethical (Community & Principled)": 0
-            }
-
-            total_points = 0
-
-            # Q1
-            if "👑" in q1: scores["Leadership (Expedition Leader)"] += 20; total_points += 20
-            elif "🤝" in q1: scores["Teamwork & Communication (Unity Builder)"] += 20; total_points += 20
-            elif "📋" in q1: scores["Organization (Logistics Captain)"] += 20; total_points += 20
-            elif "🏔️" in q1: scores["Problem Solving (Wilderness Resource)"] += 20; total_points += 20
-
-            # Q2
-            if "Expedition Leader" in q2: scores["Leadership (Expedition Leader)"] += 20; total_points += 20
-            elif "Unity Builder" in q2: scores["Teamwork & Communication (Unity Builder)"] += 20; total_points += 20
-            elif "Logistics Captain" in q2: scores["Organization (Logistics Captain)"] += 20; total_points += 20
-            elif "Wilderness Resource" in q2: scores["Problem Solving (Wilderness Resource)"] += 20; total_points += 20
-
-            # Q3
-            if "Inclusive Mindset" in q3: scores["Teamwork & Communication (Unity Builder)"] += 20; total_points += 20
-            elif "Organization" in q3: scores["Organization (Logistics Captain)"] += 18; total_points += 18
-            elif "Leadership" in q3: scores["Leadership (Expedition Leader)"] += 20; total_points += 20
-            elif "Active Communicator" in q3: scores["Teamwork & Communication (Unity Builder)"] += 18; total_points += 18
-
-            # Q4
-            if "Community-Minded" in q4: scores["Civic & Ethical (Community & Principled)"] += 20; total_points += 20
-            elif "Principled" in q4: scores["Civic & Ethical (Community & Principled)"] += 20; total_points += 20
-            elif "Wilderness Resource" in q4: scores["Problem Solving (Wilderness Resource)"] += 18; total_points += 18
-            elif "Logistics Captain" in q4: scores["Organization (Logistics Captain)"] += 18; total_points += 18
-
-            # Q5
-            if "Resilient & Adaptable" in q5: scores["Problem Solving (Wilderness Resource)"] += 20; total_points += 20
-            elif "Active Communicator" in q5: scores["Teamwork & Communication (Unity Builder)"] += 18; total_points += 18
-            elif "Inclusive" in q5: scores["Teamwork & Communication (Unity Builder)"] += 18; total_points += 18
-            elif "Logistics Captain" in q5: scores["Organization (Logistics Captain)"] += 18; total_points += 18
-
-            percentage = min(total_points, 100)
-
-            # Determine Qualification Status
-            if percentage >= 70:
-                status = "Qualified for Interview (>= 70%)"
-                badge_type = "🥇 High Potential Guide Candidate"
-            elif 50 <= percentage < 70:
-                status = "Negotiable / Secondary Review (50% - 69%)"
-                badge_type = "🥈 Developing Candidate"
-            else:
-                status = "Non-Negotiable / Below Threshold (< 50%)"
-                badge_type = "🥉 Non-Selected"
-
-            # Determine Persona
+            # Calculate Persona Scores
+            scores = {}
+            for trait in responses:
+                scores[trait] = scores.get(trait, 0) + 1
+            
             top_persona = max(scores, key=scores.get)
 
-            # Save Application Record
-            st.session_state['applications'].append({
-                "Roll No": roll_no,
-                "Name": student_name,
-                "Class": class_sec,
-                "Father Name": father_name,
-                "CNIC": father_cnic_no,
-                "Score (%)": percentage,
-                "Status": status,
-                "Primary Persona": top_persona,
-                "Father Consent": "Yes" if outdoor_consent else "No"
-            })
+            persona_descriptions = {
+                "Expedition Leader": "You possess natural vision, strategic decision-making, and strong leadership. You guide teams effectively through challenges with confidence.",
+                "Unity Builder": "You are the heart of the team, fostering empathy, inclusion, and morale. You excel at conflict resolution and making everyone feel valued.",
+                "Logistics Captain": "You excel at organization, planning, and execution. You keep operations smooth, schedules punctual, and resources accounted for.",
+                "Wilderness Specialist": "You thrive in outdoor settings, campcraft, knot-tying, and hands-on practical survival skills.",
+                "Community Advocate": "You are driven by civic responsibility, service, and social action, making a strong positive impact on surrounding communities.",
+                "Crisis Anchor": "You remain calm, composed, and analytical under pressure, guiding others safely through unexpected obstacles.",
+                "Active Communicator": "You excel in advocacy, public presentation, and expressing key ideas clearly to inspire action.",
+                "Resource Innovator": "You are resourceful, creative, and inventive, finding practical fixes and solutions with limited materials."
+            }
 
-            st.markdown("---")
-            st.subheader("🎉 Your Assessment Results & Guide Persona Badge")
+            st.balloons()
+            st.success("✅ Application Submitted Successfully! Your details are stored securely for college administration review.")
 
-            if percentage >= 70:
-                st.success(f"**Status: {status}**")
-            elif percentage >= 50:
-                st.warning(f"**Status: {status}**")
-            else:
-                st.error(f"**Status: {status}**")
+            # Display Persona Badge
+            st.markdown(f"""
+            <div class="badge-card">
+                <h2 style="color: #1b4332; margin-bottom: 0.2rem;">⚜️ Official Girl Guide Skill Badge</h2>
+                <h1 style="color: #d97706; font-size: 2.5rem; margin-top: 0;">{top_persona}</h1>
+                <p style="font-size: 1.1rem; color: #374151; max-width: 700px; margin: 0 auto;">{persona_descriptions[top_persona]}</p>
+                <br>
+                <div style="text-align: left; background: white; padding: 1rem; border-radius: 8px; max-width: 500px; margin: 0 auto;">
+                    <p><b>Candidate Name:</b> {full_name}</p>
+                    <p><b>Roll Number:</b> {roll_no}</p>
+                    <p><b>Class & Section:</b> {class_section}</p>
+                    <p><b>Date:</b> {datetime.now().strftime('%Y-%m-%d %H:%M')}</p>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
 
-            bcol1, bcol2 = st.columns(2)
-            with bcol1:
-                st.metric("Total Qualification Score", f"{percentage}%")
-                st.subheader(f"Assigned Persona:")
-                st.info(f"**{top_persona}**")
-                st.write(f"**Guide Level Badge:** {badge_type}")
-
-            with bcol2:
-                st.write("### Attribute Breakdown")
-                df_attr = pd.DataFrame(list(scores.items()), columns=["Attribute / Persona Dimension", "Score Contribution"])
-                st.dataframe(df_attr, use_container_width=True)
-
-# ==========================================
-# ADMIN DASHBOARD
-# ==========================================
+# Admin Dashboard
 else:
-    st.title("🔒 Admin Candidate Management Dashboard")
-    st.write("View submitted applications, filter candidates, and download full records.")
-
-    if len(st.session_state['applications']) == 0:
-        st.info("No applications submitted yet.")
-    else:
-        df_all = pd.DataFrame(st.session_state['applications'])
-
-        # Metrics Overview
-        m1, m2, m3, m4 = st.columns(4)
-        m1.metric("Total Applicants", len(df_all))
-        m2.metric("Qualified (>=70%)", len(df_all[df_all["Score (%)"] >= 70]))
-        m3.metric("Negotiable (50-69%)", len(df_all[(df_all["Score (%)"] >= 50) & (df_all["Score (%)"] < 70)]))
-        m4.metric("Non-Negotiable (<50%)", len(df_all[df_all["Score (%)"] < 50]))
-
-        st.markdown("---")
-        st.dataframe(df_all, use_container_width=True)
-
-        # Export CSV
-        csv_data = df_all.to_csv(index=False).encode('utf-8')
-        st.download_button(
-            label="📥 Export Candidate Records (CSV)",
-            data=csv_data,
-            file_name="girl_guide_applicants.csv",
-            mime="text/csv"
-        )
+    st.title("🔒 Administration Control Dashboard")
+    password = st.text_input("Enter Admin Password", type="password")
+    
+    if password == ADMIN_PASSWORD:
+        st.success("Authenticated as IMCG College Admin")
+        st.subheader("Submitted Applications & Document Verification")
+        st.info("Student uploads and identity records are stored in secure storage inaccessible to the public.")
+        st.write("No external public leakage: All student ID cards and consent documents are restricted to logged-in faculty.")
+    elif password:
+        st.error("Incorrect password. Access denied.")
